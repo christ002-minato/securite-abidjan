@@ -1,0 +1,60 @@
+:root {
+  /* SafeCity Custom Colors */
+  --safecity-blue: #1e3a5f;
+  --safecity-blue-light: #2d5a8e;
+  --safecity-amber: #f59e0b;
+  --safecity-amber-light: #fbbf24;
+  --safecity-red: #ef4444;
+  --safecity-red-soft: #f87171;
+  --safecity-green: #10b981;
+  --safecity-green-light: #34d399;
+  --safecity-orange: #fb923c;
+  --safecity-gray: #f3f4f6;
+  --safecity-gray-dark: #6b7280;
+}
+
+/* Smooth animations */
+.smooth-appear {
+  animation: smoothAppear 0.5s ease-out;
+}
+
+@keyframes smoothAppear {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Gradient overlays for map */
+.heatmap-overlay {
+  mix-blend-mode: multiply;
+  opacity: 0.6;
+}
+
+/* Hide scrollbar */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar globally */
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  overflow-x: hidden;
+}
