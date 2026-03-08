@@ -1,18 +1,28 @@
 import { motion } from "motion/react";
 import { AlertCircle, Clock, MapPin } from "lucide-react";
-import { recentIncidents } from "../data/mockData";
+import { useState, useEffect } from "react";
+
+interface IncidentItem {
+  id: string;
+  type: string;
+  severity: string;
+  date?: string;
+  commune: string;
+  location: string;
+  time: string;
+  description: string;
+}
 
 export function IncidentFeed() {
-  // TODO: BACKEND INTEGRATION
-  // Remplacer recentIncidents par un appel API vers votre backend
-  // Exemple:
-  // const [incidents, setIncidents] = useState([]);
-  // useEffect(() => {
-  //   fetch('/api/incidents/recent')
-  //     .then(res => res.json())
-  //     .then(data => setIncidents(data));
-  // }, []);
-  
+  const [incidents, setIncidents] = useState<IncidentItem[]>([]);
+
+  useEffect(() => {
+    fetch('/api/incidents/recent')
+      .then(res => res.json())
+      .then(data => setIncidents(data))
+      .catch(err => console.error('Erreur fetch incidents', err));
+  }, []);
+
   const getIncidentIcon = (type: string) => {
     switch (type) {
       case "agression":
@@ -47,7 +57,7 @@ export function IncidentFeed() {
       </div>
 
       <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-        {recentIncidents.map((incident, index) => (
+        {incidents.map((incident, index) => (
           <motion.div
             key={incident.id}
             initial={{ opacity: 0, y: 20 }}

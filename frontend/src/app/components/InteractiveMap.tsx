@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+import { useState, useEffect } from "react";
 import { communeRiskLevels } from "../data/mockData";
 
 interface InteractiveMapProps {
@@ -6,16 +7,16 @@ interface InteractiveMapProps {
 }
 
 export function InteractiveMap({ selectedCommune }: InteractiveMapProps) {
-  // TODO: BACKEND INTEGRATION
-  // Remplacer communeRiskLevels par un appel API pour obtenir les données de risque en temps réel
-  // Exemple:
-  // const [heatmapData, setHeatmapData] = useState([]);
-  // useEffect(() => {
-  //   fetch('/api/map/heatmap')
-  //     .then(res => res.json())
-  //     .then(data => setHeatmapData(data));
-  // }, []);
-  
+  const [heatmapData, setHeatmapData] = useState<any[]>([]);
+
+  // récupération des points à partir de la base de données
+  useEffect(() => {
+    fetch('/api/map/heatmap')
+      .then(res => res.json())
+      .then(data => setHeatmapData(data))
+      .catch(err => console.error('Erreur heatmap', err));
+  }, []);
+
   return (
     <div className="absolute inset-0 bg-gradient-to-br from-orange-100 via-amber-50 to-pink-100">
       {/* Sunset overlay effect */}
@@ -57,7 +58,7 @@ export function InteractiveMap({ selectedCommune }: InteractiveMapProps) {
           </defs>
 
           {/* Heatmap circles representing different communes */}
-          {communeRiskLevels.map((commune, index) => {
+          {(heatmapData.length ? heatmapData : communeRiskLevels).map((commune, index) => {
             const positions = [
               { x: 150, y: 150 }, // Cocody
               { x: 500, y: 200 }, // Yopougon
@@ -72,19 +73,20 @@ export function InteractiveMap({ selectedCommune }: InteractiveMapProps) {
             ];
 
             const pos = positions[index] || { x: 400, y: 300 };
+            const riskValue = 'risk' in commune ? commune.risk : commune.intensity * 10;
             const gradient =
-              commune.risk >= 7
+              riskValue >= 7
                 ? "redZone"
-                : commune.risk >= 6
+                : riskValue >= 6
                 ? "orangeZone"
-                : commune.risk >= 5
+                : riskValue >= 5
                 ? "yellowZone"
                 : "greenZone";
 
-            const isSelected = selectedCommune?.toLowerCase() === commune.commune.toLowerCase();
+            const isSelected = selectedCommune?.toLowerCase() === ('commune' in commune ? commune.commune.toLowerCase() : '');
 
             return (
-              <g key={commune.commune}>
+              <g key={index}>
                 <motion.circle
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
@@ -95,19 +97,37 @@ export function InteractiveMap({ selectedCommune }: InteractiveMapProps) {
                   fill={`url(#${gradient})`}
                   className="transition-all duration-300"
                 />
-                <motion.text
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: index * 0.1 + 0.2 }}
-                  x={pos.x}
-                  y={pos.y}
-                  textAnchor="middle"
-                  className="text-sm font-semibold pointer-events-none"
-                  fill={isSelected ? "#1e3a5f" : "#4b5563"}
-                  style={{ fontSize: isSelected ? "16px" : "12px" }}
-                >
-                  {commune.commune}
-                </motion.text>
+                {('commune' in commune) && (
+                  <>
+                    <motion.text
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: index * 0.1 + 0.2 }}
+                      x={pos.x}
+                      y={pos.y - 10}
+                      textAnchor="middle"
+                      className="text-xs font-semibold pointer-events-none"
+                      fill={isSelected ? "#1e3a5f" : "#4b5563"}
+                      style={{ fontSize: isSelected ? "16px" : "12px" }}
+                    >
+                      {commune.commune}
+                    </motion.text>
+                    {('quartier' in commune) && commune.quartier && (
+                      <motion.text
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: index * 0.1 + 0.3 }}
+                        x={pos.x}
+                        y={pos.y + 12}
+                        textAnchor="middle"
+                        className="text-[10px] pointer-events-none"
+                        fill={isSelected ? "#1e3a5f" : "#4b5563"}
+                      >
+                        {commune.quartier}
+                      </motion.text>
+                    )}
+                  </>
+                )}
               </g>
             );
           })}

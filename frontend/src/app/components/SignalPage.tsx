@@ -14,33 +14,34 @@ export function SignalPage() {
   });
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // TODO: BACKEND INTEGRATION
-    // Envoyer le signalement vers votre backend
-    // Exemple:
-    // const response = await fetch('/api/incidents', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(formData)
-    // });
-    // const data = await response.json();
-    // if (data.success) {
-    //   setSubmitted(true);
-    // }
-    
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({
-        type: "",
-        commune: "",
-        location: "",
-        description: "",
-        severity: "modéré",
+    try {
+      const response = await fetch('/api/incidents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
       });
-    }, 3000);
+      const data = await response.json();
+      if (response.ok) {
+        setSubmitted(true);
+        setTimeout(() => {
+          setSubmitted(false);
+          setFormData({
+            type: "",
+            commune: "",
+            location: "",
+            description: "",
+            severity: "modéré",
+          });
+        }, 3000);
+      } else {
+        alert('Échec de l\'enregistrement : ' + (data.error || data.message));
+      }
+    } catch (err) {
+      console.error('Erreur réseau signalement', err);
+      alert('Impossible de contacter le serveur.');
+    }
   };
 
   const incidentTypes = [
@@ -142,7 +143,7 @@ export function SignalPage() {
                     type="text"
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    placeholder="Ex: Près du marché, Rue des Jardins..."
+                    placeholder="Optionnel : lat,long (env. 4 déc.) ou lieu précis"
                     className="w-full px-4 py-3 rounded-xl border border-[var(--safecity-gray-dark)]/20 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--safecity-blue)]/50 transition-all"
                   />
                 </div>

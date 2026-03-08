@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "./Header";
 import { motion } from "motion/react";
 import { BarChart3, TrendingUp, Users, Shield } from "lucide-react";
@@ -14,27 +14,37 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { communeRiskLevels, hourlyRiskData, communes } from "../data/mockData";
+import { communes } from "../data/mockData"; // garde la liste de communes statique
 
 export function StatsPage() {
-  // TODO: BACKEND INTEGRATION
-  // Remplacer communeRiskLevels et hourlyRiskData par des appels API
-  // Exemple:
-  // const [stats, setStats] = useState({ communeRiskLevels: [], hourlyRiskData: [] });
-  // useEffect(() => {
-  //   Promise.all([
-  //     fetch('/api/stats/communes').then(r => r.json()),
-  //     fetch('/api/stats/hourly').then(r => r.json())
-  //   ]).then(([communes, hourly]) => {
-  //     setStats({ communeRiskLevels: communes, hourlyRiskData: hourly });
-  //   });
-  // }, []);
-  
+  // données venant du backend
+  const [communeRiskLevels, setCommuneRiskLevels] = useState<Array<{commune: string; incidents: number;}>>([]);
+  const [hourlyRiskData, setHourlyRiskData] = useState<Array<{hour: string; incidents: number;}>>([]);
+
   const [selectedPeriod, setSelectedPeriod] = useState<"week" | "month" | "year">("month");
   const [selectedCommune, setSelectedCommune] = useState<string>("all");
 
+  // chargement initial des données et refetch lorsque la commune change
+  useEffect(() => {
+    fetch('/api/stats/communes')
+      .then(r => r.json())
+      .then(data => setCommuneRiskLevels(data))
+      .catch(err => console.error('Erreur stats communes', err));
+  }, []);
+
+  useEffect(() => {
+    // si une commune est sélectionnée, demander le filtrage
+    const url = selectedCommune && selectedCommune !== 'all'
+      ? `/api/stats/hourly?commune=${encodeURIComponent(selectedCommune)}`
+      : '/api/stats/hourly';
+    fetch(url)
+      .then(r => r.json())
+      .then(data => setHourlyRiskData(data))
+      .catch(err => console.error('Erreur stats hourly', err));
+  }, [selectedCommune]);
+
   const totalIncidents = communeRiskLevels.reduce((sum, c) => sum + c.incidents, 0);
-  const avgRisk = (communeRiskLevels.reduce((sum, c) => sum + c.risk, 0) / communeRiskLevels.length).toFixed(1);
+  const avgIncidents = communeRiskLevels.length ? (totalIncidents / communeRiskLevels.length).toFixed(1) : "0";
 
   const communeData = communeRiskLevels.find((c) => c.commune === selectedCommune);
 
@@ -47,8 +57,8 @@ export function StatsPage() {
       bgColor: "var(--safecity-blue)",
     },
     {
-      title: "Risque moyen",
-      value: `${avgRisk}/10`,
+      title: "Signalements moyens par commune",
+      value: `${avgIncidents}`,
       icon: TrendingUp,
       color: "var(--safecity-amber)",
       bgColor: "var(--safecity-amber)",
@@ -141,9 +151,9 @@ export function StatsPage() {
                     className="px-3 py-2 rounded-lg border border-[var(--safecity-gray-dark)]/20 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--safecity-blue)]/50"
                   >
                     <option value="all">Toutes les communes</option>
-                    {communes.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
+                    {communeRiskLevels.map((c) => (
+                      <option key={c.commune} value={c.commune}>
+                        {c.commune}
                       </option>
                     ))}
                   </select>
@@ -151,7 +161,7 @@ export function StatsPage() {
                     <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--safecity-gray)]/50">
                       <div
                         className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: communeData.color }}
+                        style={{ backgroundColor: '#1e3a5f' }}
                       />
                       <span className="text-sm text-[var(--safecity-gray-dark)]">
                         {communeData.incidents} incidents
@@ -178,7 +188,7 @@ export function StatsPage() {
                   <YAxis
                     tick={{ fill: "#6b7280", fontSize: 12 }}
                     stroke="#d1d5db"
-                    domain={[0, 10]}
+                    domain={[0, 'dataMax']}
                   />
                   <Tooltip
                     contentStyle={{
@@ -189,7 +199,7 @@ export function StatsPage() {
                   />
                   <Area
                     type="monotone"
-                    dataKey="risk"
+                    dataKey="incidents"
                     stroke="#1e3a5f"
                     strokeWidth={2}
                     fillOpacity={1}
@@ -224,7 +234,7 @@ export function StatsPage() {
                   <YAxis
                     tick={{ fill: "#6b7280", fontSize: 12 }}
                     stroke="#d1d5db"
-                    domain={[0, 10]}
+                    domain={[0, 'dataMax']}
                   />
                   <Tooltip
                     contentStyle={{

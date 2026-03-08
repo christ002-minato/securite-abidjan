@@ -13,24 +13,42 @@ export function TripForm({ onResult }: TripFormProps) {
   const [destination, setDestination] = useState("");
   const [time, setTime] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('handleSubmit clicked', { gender, age, destination, time });
+
     if (!age || !destination || !time) {
+      console.warn('trip form incomplete', { age, destination, time });
+      alert('Veuillez remplir tous les champs du formulaire avant de soumettre.');
       return;
     }
 
-    // TODO: BACKEND INTEGRATION
-    // Remplacer calculateRisk par un appel API vers votre backend
-    // Exemple:
-    // const response = await fetch('/api/evaluate-trip', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({ gender, age: parseInt(age), destination, time })
-    // });
-    // const result = await response.json();
-    
-    const result = calculateRisk(gender, parseInt(age), destination, time);
-    onResult({ ...result, destination });
+    try {
+      // 1. Appel API vers ton backend local
+      const response = await fetch('/api/evaluate-trip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          gender, 
+          age: parseInt(age), 
+          destination, 
+          time 
+        })
+      });
+
+      if (!response.ok) throw new Error("Erreur serveur");
+
+      const result = await response.json();
+      
+      // 2. On envoie le résultat au parent (ton interface change alors)
+      onResult({ ...result, destination });
+
+    } catch (error) {
+      console.error("Erreur de connexion au backend :", error);
+      // Optionnel : utiliser calculateRisk en secours si le serveur est coupé
+      const result = calculateRisk(gender, parseInt(age), destination, time);
+      onResult({ ...result, destination });
+    }
   };
 
   return (
@@ -80,6 +98,7 @@ export function TripForm({ onResult }: TripFormProps) {
             placeholder="Entrez votre âge"
             min="1"
             max="120"
+            required
             className="w-full px-4 py-3 rounded-xl border border-[var(--safecity-gray-dark)]/20 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--safecity-blue)]/50 transition-all"
           />
         </div>
@@ -93,6 +112,7 @@ export function TripForm({ onResult }: TripFormProps) {
           <select
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
+            required
             className="w-full px-4 py-3 rounded-xl border border-[var(--safecity-gray-dark)]/20 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--safecity-blue)]/50 transition-all"
           >
             <option value="">Sélectionnez une commune</option>
@@ -114,6 +134,7 @@ export function TripForm({ onResult }: TripFormProps) {
             type="time"
             value={time}
             onChange={(e) => setTime(e.target.value)}
+            required
             className="w-full px-4 py-3 rounded-xl border border-[var(--safecity-gray-dark)]/20 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--safecity-blue)]/50 transition-all"
           />
         </div>
