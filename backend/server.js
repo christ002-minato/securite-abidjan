@@ -8,6 +8,9 @@ const mongoURI = process.env.MONGO_URI;
 const app = express();
 
 // Middlewares
+app.get('/', (req, res) => {
+  res.send("🚀 Le Backend de SafeCity Abidjan est en ligne et fonctionnel !");
+});
 app.use(express.json());
 app.use(cors());
 
