@@ -20,29 +20,27 @@ app.use(cors());
 // import des modèles
 const Incident = require('./models/Incident');
 
-// middleware qui rejette les requêtes si la DB n'est pas prête
+// Configuration de connexion avec détection d'erreur immédiate
+mongoose.connect(mongoURI, {
+  serverSelectionTimeoutMS: 5000 // N'attend que 5 secondes max
+})
+.then(() => console.log("✅ RÉUSSITE : Connecté à MongoDB Atlas !"))
+.catch(err => {
+  console.error("❌ ÉCHEC CRITIQUE MongoDB :");
+  console.error("Message :", err.message);
+  console.error("Code d'erreur :", err.code);
+});
+
+// Middleware pour vérifier la connexion avant chaque requête
 app.use((req, res, next) => {
   if (mongoose.connection.readyState !== 1) {
-    console.warn('Requête reçue alors que MongoDB n’est pas connectée (état', mongoose.connection.readyState, ')');
-    return res.status(503).json({ error: 'Service temporairement indisponible' });
+    return res.status(503).json({ 
+      error: "Service temporairement indisponible", 
+      details: "La base de données n'est pas encore prête." 
+    });
   }
   next();
 });
-
-// Connexion à MongoDB (Remplace par ton lien MongoDB Atlas plus tard)
-// on fournit quelques options pour limiter le buffering et les délais
-mongoose.connect(mongoURI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000,   // fail fast si le serveur n'est pas dispo
-})
-  .then(() => console.log("✅ Connecté à MongoDB Atlas"))
-  .catch(err => console.error("❌ Erreur de connexion MongoDB", err));
-
-// logs supplémentaires à chaque changement d'état (utile sur Render)
-mongoose.connection.on('connected', () => console.log('Mongoose état : connecté'));
-mongoose.connection.on('error', err => console.error('Mongoose état : erreur', err));
-mongoose.connection.on('disconnected', () => console.log('Mongoose état : déconnecté'));
 
 // --- TES ROUTES (TODO du Figma) ---
 
