@@ -25,7 +25,7 @@ export function TripForm({ onResult }: TripFormProps) {
 
     try {
       // 1. Appel API vers ton backend local
-      const response = await fetch('/api/evaluate-trip', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/evaluate-trip`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
