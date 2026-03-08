@@ -1,4 +1,3 @@
 node_modules
 dist
 .env
-VITE_API_URL=https://securite-abidjan.onrender.com
