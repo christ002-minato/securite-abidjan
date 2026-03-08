@@ -16,13 +16,30 @@ interface IncidentItem {
 export function IncidentFeed() {
   const [incidents, setIncidents] = useState<IncidentItem[]>([]);
 
-  const API_BASE = import.meta.env.VITE_API_URL || '';
+  // ignore la variable en développement pour ne pas pointer le backend en ligne
+  const API_BASE = import.meta.env.DEV ? '' : import.meta.env.VITE_API_URL || '';
 
   useEffect(() => {
     fetch(`${API_BASE}/api/incidents/recent`)
-      .then(res => res.json())
-      .then(data => setIncidents(data))
-      .catch(err => console.error('Erreur fetch incidents', err));
+      .then(async res => {
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`HTTP ${res.status} - ${text}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        if (!Array.isArray(data)) {
+          console.warn('IncidentFeed got non-array data', data);
+          setIncidents([]);
+        } else {
+          setIncidents(data);
+        }
+      })
+      .catch(err => {
+        console.error('Erreur fetch incidents', err);
+        setIncidents([]);
+      });
   }, []);
 
   const getIncidentIcon = (type: string) => {
@@ -59,9 +76,9 @@ export function IncidentFeed() {
       </div>
 
       <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-        {incidents.map((incident, index) => (
+        {Array.isArray(incidents) && incidents.map((incident, index) => (
           <motion.div
-            key={incident.id}
+            key={incident?.id || index}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}

@@ -9,7 +9,8 @@ interface InteractiveMapProps {
 export function InteractiveMap({ selectedCommune }: InteractiveMapProps) {
   const [heatmapData, setHeatmapData] = useState<any[]>([]);
 
-  const API_BASE = import.meta.env.VITE_API_URL || '';
+  // force le proxy local en dev même si VITE_API_URL existe
+  const API_BASE = import.meta.env.DEV ? '' : import.meta.env.VITE_API_URL || '';
 
   // récupération des points à partir de la base de données
   useEffect(() => {

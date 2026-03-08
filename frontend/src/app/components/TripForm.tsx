@@ -23,7 +23,8 @@ export function TripForm({ onResult }: TripFormProps) {
       return;
     }
 
-    const API_BASE = import.meta.env.VITE_API_URL || '';
+    // en développement on utilise toujours le proxy local
+    const API_BASE = import.meta.env.DEV ? '' : import.meta.env.VITE_API_URL || '';
 
     try {
       // 1. Appel API vers ton backend (local ou distant)

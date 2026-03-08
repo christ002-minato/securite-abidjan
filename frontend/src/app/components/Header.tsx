@@ -33,7 +33,7 @@ export function Header() {
                 SafeCity
               </h1>
               <p className="text-xs text-[var(--safecity-gray-dark)]">
-                Abidjan
+                Abidjan test 2
               </p>
             </div>
           </Link>

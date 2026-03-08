@@ -24,15 +24,32 @@ export function StatsPage() {
   const [selectedPeriod, setSelectedPeriod] = useState<"week" | "month" | "year">("month");
   const [selectedCommune, setSelectedCommune] = useState<string>("all");
 
-  // helper pour créer l'URL complète (vide en local, proxy actif)
-  const API_BASE = import.meta.env.VITE_API_URL || '';
+  // helper pour créer l'URL complète :
+  // en mode dev on utilise toujours le proxy local, même si VITE_API_URL est défini
+  const API_BASE = import.meta.env.DEV ? '' : import.meta.env.VITE_API_URL || '';
 
   // chargement initial des données et refetch lorsque la commune change
   useEffect(() => {
     fetch(`${API_BASE}/api/stats/communes`)
-      .then(r => r.json())
-      .then(data => setCommuneRiskLevels(data))
-      .catch(err => console.error('Erreur stats communes', err));
+      .then(async r => {
+        if (!r.ok) {
+          const text = await r.text();
+          throw new Error(`HTTP ${r.status} - ${text}`);
+        }
+        return r.json();
+      })
+      .then(data => {
+        if (!Array.isArray(data)) {
+          console.warn('StatsPage.communes got non-array', data);
+          setCommuneRiskLevels([]);
+        } else {
+          setCommuneRiskLevels(data);
+        }
+      })
+      .catch(err => {
+        console.error('Erreur stats communes', err);
+        setCommuneRiskLevels([]);
+      });
   }, []);
 
   useEffect(() => {
@@ -41,15 +58,37 @@ export function StatsPage() {
       ? `${API_BASE}/api/stats/hourly?commune=${encodeURIComponent(selectedCommune)}`
       : `${API_BASE}/api/stats/hourly`;
     fetch(url)
-      .then(r => r.json())
-      .then(data => setHourlyRiskData(data))
-      .catch(err => console.error('Erreur stats hourly', err));
+      .then(async r => {
+        if (!r.ok) {
+          const text = await r.text();
+          throw new Error(`HTTP ${r.status} - ${text}`);
+        }
+        return r.json();
+      })
+      .then(data => {
+        if (!Array.isArray(data)) {
+          console.warn('StatsPage.hourly got non-array', data);
+          setHourlyRiskData([]);
+        } else {
+          setHourlyRiskData(data);
+        }
+      })
+      .catch(err => {
+        console.error('Erreur stats hourly', err);
+        setHourlyRiskData([]);
+      });
   }, [selectedCommune]);
 
-  const totalIncidents = communeRiskLevels.reduce((sum, c) => sum + c.incidents, 0);
-  const avgIncidents = communeRiskLevels.length ? (totalIncidents / communeRiskLevels.length).toFixed(1) : "0";
+  const totalIncidents = Array.isArray(communeRiskLevels)
+    ? communeRiskLevels.reduce((sum, c) => sum + c.incidents, 0)
+    : 0;
+  const avgIncidents = Array.isArray(communeRiskLevels) && communeRiskLevels.length
+    ? (totalIncidents / communeRiskLevels.length).toFixed(1)
+    : "0";
 
-  const communeData = communeRiskLevels.find((c) => c.commune === selectedCommune);
+  const communeData = Array.isArray(communeRiskLevels)
+    ? communeRiskLevels.find((c) => c.commune === selectedCommune)
+    : undefined;
 
   const statsCards = [
     {
@@ -223,8 +262,15 @@ export function StatsPage() {
                 Comparaison des communes
               </h3>
 
+              {/* pour comparaison on trie par incidents décroissant et on expose une clé `risk` */}
               <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={communeRiskLevels}>
+                <BarChart data={
+                  Array.isArray(communeRiskLevels)
+                    ? [...communeRiskLevels]
+                        .sort((a,b) => b.incidents - a.incidents)
+                        .map(c => ({ ...c, risk: c.incidents }))
+                    : []
+                }>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis
                     dataKey="commune"
