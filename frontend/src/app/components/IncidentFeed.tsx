@@ -16,8 +16,10 @@ interface IncidentItem {
 export function IncidentFeed() {
   const [incidents, setIncidents] = useState<IncidentItem[]>([]);
 
+  const API_BASE = import.meta.env.VITE_API_URL || '';
+
   useEffect(() => {
-    fetch('/api/incidents/recent')
+    fetch(`${API_BASE}/api/incidents/recent`)
       .then(res => res.json())
       .then(data => setIncidents(data))
       .catch(err => console.error('Erreur fetch incidents', err));

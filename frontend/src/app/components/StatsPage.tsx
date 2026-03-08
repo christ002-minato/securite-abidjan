@@ -24,9 +24,12 @@ export function StatsPage() {
   const [selectedPeriod, setSelectedPeriod] = useState<"week" | "month" | "year">("month");
   const [selectedCommune, setSelectedCommune] = useState<string>("all");
 
+  // helper pour créer l'URL complète (vide en local, proxy actif)
+  const API_BASE = import.meta.env.VITE_API_URL || '';
+
   // chargement initial des données et refetch lorsque la commune change
   useEffect(() => {
-    fetch('/api/stats/communes')
+    fetch(`${API_BASE}/api/stats/communes`)
       .then(r => r.json())
       .then(data => setCommuneRiskLevels(data))
       .catch(err => console.error('Erreur stats communes', err));
@@ -35,8 +38,8 @@ export function StatsPage() {
   useEffect(() => {
     // si une commune est sélectionnée, demander le filtrage
     const url = selectedCommune && selectedCommune !== 'all'
-      ? `/api/stats/hourly?commune=${encodeURIComponent(selectedCommune)}`
-      : '/api/stats/hourly';
+      ? `${API_BASE}/api/stats/hourly?commune=${encodeURIComponent(selectedCommune)}`
+      : `${API_BASE}/api/stats/hourly`;
     fetch(url)
       .then(r => r.json())
       .then(data => setHourlyRiskData(data))

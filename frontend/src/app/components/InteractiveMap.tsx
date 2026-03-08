@@ -9,9 +9,11 @@ interface InteractiveMapProps {
 export function InteractiveMap({ selectedCommune }: InteractiveMapProps) {
   const [heatmapData, setHeatmapData] = useState<any[]>([]);
 
+  const API_BASE = import.meta.env.VITE_API_URL || '';
+
   // récupération des points à partir de la base de données
   useEffect(() => {
-    fetch('/api/map/heatmap')
+    fetch(`${API_BASE}/api/map/heatmap`)
       .then(res => res.json())
       .then(data => setHeatmapData(data))
       .catch(err => console.error('Erreur heatmap', err));
