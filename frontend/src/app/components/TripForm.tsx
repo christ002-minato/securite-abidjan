@@ -23,9 +23,11 @@ export function TripForm({ onResult }: TripFormProps) {
       return;
     }
 
+    const API_BASE = import.meta.env.VITE_API_URL || '';
+
     try {
-      // 1. Appel API vers ton backend local
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/evaluate-trip`, {
+      // 1. Appel API vers ton backend (local ou distant)
+      const response = await fetch(`${API_BASE}/api/evaluate-trip`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
