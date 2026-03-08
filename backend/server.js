@@ -20,25 +20,28 @@ app.use(cors());
 // import des modèles
 const Incident = require('./models/Incident');
 
-// Configuration de connexion avec détection d'erreur immédiate
+// Connexion à MongoDB (Remplace par ton lien MongoDB Atlas plus tard)
+// options minimales : la plupart sont maintenant gérées par mongoose lui‑même
 mongoose.connect(mongoURI, {
-  serverSelectionTimeoutMS: 5000 // N'attend que 5 secondes max
+  serverSelectionTimeoutMS: 5000,   // fail fast si le serveur n'est pas dispo
 })
-.then(() => console.log("✅ RÉUSSITE : Connecté à MongoDB Atlas !"))
-.catch(err => {
-  console.error("❌ ÉCHEC CRITIQUE MongoDB :");
-  console.error("Message :", err.message);
-  console.error("Code d'erreur :", err.code);
-});
+  .then(() => console.log("✅ Connecté à MongoDB Atlas"))
+  .catch(err => console.error("❌ Erreur de connexion MongoDB", err));
 
-// Middleware pour vérifier la connexion avant chaque requête
+// logs supplémentaires à chaque changement d'état (utile sur Render/local)
+mongoose.connection.on('connected', () => console.log('Mongoose état : connecté'));
+mongoose.connection.on('error', err => console.error('Mongoose état : erreur', err));
+mongoose.connection.on('disconnected', () => console.log('Mongoose état : déconnecté'));
+
+// middleware léger : on bloque uniquement quand la connexion est complètement fermée
+// readyState values: 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
 app.use((req, res, next) => {
-  if (mongoose.connection.readyState !== 1) {
-    return res.status(503).json({ 
-      error: "Service temporairement indisponible", 
-      details: "La base de données n'est pas encore prête." 
-    });
+  const state = mongoose.connection.readyState;
+  if (state === 0) {
+    console.warn('Requête reçue alors que MongoDB est déconnectée');
+    return res.status(503).json({ error: 'Service temporairement indisponible' });
   }
+  // si l'état est 1, 2 ou 3 on laisse passer (connexion en cours ou terminée)
   next();
 });
 
