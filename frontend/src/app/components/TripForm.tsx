@@ -24,7 +24,7 @@ export function TripForm({ onResult }: TripFormProps) {
     }
 
     // en développement on utilise toujours le proxy local
-    const API_BASE = import.meta.env.DEV ? '' : import.meta.env.VITE_API_URL || '';
+    const API_BASE = "https://securite-abidjan.onrender.com";
 
     try {
       // 1. Appel API vers ton backend (local ou distant)
