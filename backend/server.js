@@ -80,7 +80,18 @@ app.get('/api/map/heatmap', async (req, res) => {
 // 2. Enregistrer un nouveau signalement
 app.post('/api/incidents', async (req, res) => {
     try {
-        const payload = req.body;
+        let payload = { ...req.body };
+        // si l'utilisateur tape un texte dans 'location', on le traite
+        if (payload.location && typeof payload.location === 'string') {
+            const parts = payload.location.split(',').map(s => s.trim());
+            const nums = parts.map(n => parseFloat(n));
+            if (nums.length === 2 && !isNaN(nums[0]) && !isNaN(nums[1])) {
+                payload.location = { type: 'Point', coordinates: [nums[0], nums[1]] };
+            } else {
+                payload.quartier = payload.location;
+                delete payload.location;
+            }
+        }
         const incident = new Incident(payload);
         await incident.save();
         res.status(201).json({ message: 'Signalement enregistré !', incident });

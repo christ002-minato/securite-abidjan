@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { X, Shield, AlertTriangle, Heart } from "lucide-react";
+import { X, Shield, AlertTriangle, Heart, Share2 } from "lucide-react";
 
 interface ResultSidebarProps {
   result: {
@@ -12,6 +12,24 @@ interface ResultSidebarProps {
 }
 
 export function ResultSidebar({ result, onClose }: ResultSidebarProps) {
+  const handleShare = async () => {
+    const shareData = {
+      title: 'Babi-Guide : Mon trajet sécurisé',
+      text: `Je me rends à ${result.destination}. Babi-Guide m'accompagne pour ce trajet.`,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        navigator.clipboard.writeText(shareData.text);
+        alert("Détails du trajet copiés ! Partagez-les avec vos proches.");
+      }
+    } catch (err) {
+      console.error("Erreur de partage", err);
+    }
+  };
   const getRiskLabel = (risk: number) => {
     if (risk >= 7) return "Élevé";
     if (risk >= 5) return "Modéré";
@@ -100,6 +118,15 @@ export function ResultSidebar({ result, onClose }: ResultSidebarProps) {
           ))}
         </div>
       </div>
+
+      {/* Share button */}
+      <button 
+        onClick={handleShare}
+        className="mt-6 flex items-center justify-center gap-2 w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition-colors border border-slate-200 font-medium"
+      >
+        <Share2 className="w-4 h-4" />
+        Partager mon itinéraire à un proche
+      </button>
 
       {/* Footer Message */}
       <motion.div

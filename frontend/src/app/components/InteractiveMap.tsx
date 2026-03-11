@@ -9,6 +9,35 @@ interface InteractiveMapProps {
 export function InteractiveMap({ selectedCommune }: InteractiveMapProps) {
   const [heatmapData, setHeatmapData] = useState<any[]>([]);
 
+  // pan/zoom state
+  const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
+  const [dragging, setDragging] = useState(false);
+  const [lastPos, setLastPos] = useState<{ x: number; y: number } | null>(null);
+
+  const onWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = -e.deltaY / 500;
+    setTransform(t => {
+      const newScale = Math.min(5, Math.max(0.5, t.scale + delta));
+      return { ...t, scale: newScale };
+    });
+  };
+  const onMouseDown = (e: React.MouseEvent) => {
+    setDragging(true);
+    setLastPos({ x: e.clientX, y: e.clientY });
+  };
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!dragging || !lastPos) return;
+    const dx = e.clientX - lastPos.x;
+    const dy = e.clientY - lastPos.y;
+    setTransform(t => ({ ...t, x: t.x + dx, y: t.y + dy }));
+    setLastPos({ x: e.clientX, y: e.clientY });
+  };
+  const onMouseUp = () => {
+    setDragging(false);
+    setLastPos(null);
+  };
+
   // force le proxy local en dev même si VITE_API_URL existe
   const API_BASE = import.meta.env.DEV ? '' : import.meta.env.VITE_API_URL || '';
 
@@ -26,7 +55,19 @@ export function InteractiveMap({ selectedCommune }: InteractiveMapProps) {
       <div className="absolute inset-0 bg-gradient-to-t from-orange-200/30 via-transparent to-blue-100/20"></div>
       
       {/* Simplified Map Background */}
-      <div className="w-full h-full relative overflow-hidden">
+      <div
+        className="w-full h-full relative overflow-hidden"
+        onWheel={onWheel}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseUp}
+        style={{
+          cursor: dragging ? 'grabbing' : 'grab',
+          transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`,
+          transformOrigin: '0 0',
+        }}
+      >
         {/* Grid pattern */}
         <div
           className="absolute inset-0 opacity-20"

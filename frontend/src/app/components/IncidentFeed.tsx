@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import { AlertCircle, Clock, MapPin } from "lucide-react";
 import { useState, useEffect } from "react";
+import { format } from "date-fns";
 
 interface IncidentItem {
   id: string;
@@ -33,7 +34,22 @@ export function IncidentFeed() {
           console.warn('IncidentFeed got non-array data', data);
           setIncidents([]);
         } else {
-          setIncidents(data);
+          // sort raw data by date descending before formatting
+          const sorted = [...data].sort((a,b) => {
+            const da = a.date ? new Date(a.date).getTime() : 0;
+            const db = b.date ? new Date(b.date).getTime() : 0;
+            return db - da;
+          });
+          const formatted = sorted.map(i => {
+            const d = i.date ? new Date(i.date) : new Date();
+            return {
+              ...i,
+              date: format(d, 'P'),             // date only
+              time: i.time || format(d, 'p'),   // fallback to date time
+              location: i.location || '',
+            };
+          });
+          setIncidents(formatted);
         }
       })
       .catch(err => {

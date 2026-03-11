@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router";
-import { Shield, MapPin, AlertCircle, BarChart3, Globe } from "lucide-react";
+import { Shield, ShieldCheck, MapPin, AlertCircle, BarChart3, Globe, Menu } from "lucide-react";
 import { useState } from "react";
 import { motion } from "motion/react";
 
@@ -25,17 +25,12 @@ export function Header() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="bg-gradient-to-br from-[var(--safecity-blue)] to-[var(--safecity-blue-light)] p-2 rounded-xl shadow-md group-hover:shadow-lg transition-shadow">
-              <Shield className="w-6 h-6 text-white" />
+            <div className="bg-blue-600 p-1.5 rounded-lg">
+              <ShieldCheck className="w-6 h-6 text-white" />
             </div>
-            <div>
-              <h1 className="text-xl font-semibold text-[var(--safecity-blue)]">
-                SafeCity
-              </h1>
-              <p className="text-xs text-[var(--safecity-gray-dark)]">
-                Abidjan test 2
-              </p>
-            </div>
+            <span className="text-xl font-bold tracking-tight text-slate-800">
+              Babi<span className="text-blue-600">-Guide</span>
+            </span>
           </Link>
 
           {/* Navigation */}

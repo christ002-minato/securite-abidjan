@@ -11,6 +11,8 @@ export function SignalPage() {
     location: "",
     description: "",
     severity: "modéré",
+    date: "",
+    heure: "",
   });
   const [submitted, setSubmitted] = useState(false);
 
@@ -139,15 +141,41 @@ export function SignalPage() {
                 <div>
                   <label className="flex items-center gap-2 text-sm font-medium text-[var(--safecity-blue)] mb-2">
                     <MapPin className="w-4 h-4" />
-                    Lieu précis (optionnel)
+                    Nom du quartier ou lieu (optionnel)
                   </label>
                   <input
                     type="text"
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    placeholder="Optionnel : lat,long (env. 4 déc.) ou lieu précis"
+                    placeholder="Ex : Cocody Centre ou 5.345,-4.012 (optionnel)"
                     className="w-full px-4 py-3 rounded-xl border border-[var(--safecity-gray-dark)]/20 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--safecity-blue)]/50 transition-all"
                   />
+                </div>
+
+                {/* Date & Time */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-[var(--safecity-blue)] mb-2 block">
+                      Date de l'incident
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.date}
+                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-[var(--safecity-gray-dark)]/20 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--safecity-blue)]/50 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-[var(--safecity-blue)] mb-2 block">
+                      Heure approximative
+                    </label>
+                    <input
+                      type="time"
+                      value={formData.heure}
+                      onChange={(e) => setFormData({ ...formData, heure: e.target.value })}
+                      className="w-full px-4 py-3 rounded-xl border border-[var(--safecity-gray-dark)]/20 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--safecity-blue)]/50 transition-all"
+                    />
+                  </div>
                 </div>
 
                 {/* Description */}

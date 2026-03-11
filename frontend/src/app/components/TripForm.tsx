@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "motion/react";
-import { MapPin, Clock, User, Calendar } from "lucide-react";
+import { MapPin, Clock, User, Calendar, ShieldCheck } from "lucide-react";
 import { communes, calculateRisk } from "../data/mockData";
 
 interface TripFormProps {
@@ -24,7 +24,7 @@ export function TripForm({ onResult }: TripFormProps) {
     }
 
     // en développement on utilise toujours le proxy local
-    const API_BASE = "https://securite-abidjan.onrender.com";
+    const API_BASE = import.meta.env.DEV ? '' : import.meta.env.VITE_API_URL || '';
 
     try {
       // 1. Appel API vers ton backend (local ou distant)
@@ -158,11 +158,12 @@ export function TripForm({ onResult }: TripFormProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="mt-4 p-4 bg-[var(--safecity-blue)]/5 rounded-xl border border-[var(--safecity-blue)]/10"
+        className="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-100 flex gap-3"
       >
-        <p className="text-xs text-[var(--safecity-gray-dark)] leading-relaxed">
-          💙 <strong>SafeCity</strong> vous accompagne dans vos déplacements à Abidjan.
-          Nos recommandations sont basées sur les signalements de la communauté.
+        <ShieldCheck className="w-5 h-5 text-blue-600 shrink-0" />
+        <p className="text-xs text-slate-600 leading-relaxed">
+          <strong>Babi-Guide</strong> sécurise vos pas. Nos analyses croisent les faits
+          réels et les signalements pour vous conseiller le meilleur itinéraire.
         </p>
       </motion.div>
     </motion.div>
